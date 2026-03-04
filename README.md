@@ -21,22 +21,22 @@ openclaw plugins install -l /path/to/openclaw-config
 将本项目复制到全局扩展目录：
 
 ```bash
-cp -r openclaw-config ~/.openclaw/extensions/openclaw-config
+cp -r openclaw-config ~/.openclaw/extensions/config-generator
 ```
 
 安装后重启 Gateway。
 
 ## 使用
 
-启动 Gateway 后，在浏览器中访问：
+启动 Gateway 后，插件会自动在独立端口启动 Web 服务器。在浏览器中访问：
 
 ```
-http://127.0.0.1:18789/ext/config-generator
+http://127.0.0.1:18800/
 ```
 
 ## 配置（可选）
 
-可在 `openclaw.json` 中自定义路由路径：
+可在 `openclaw.json` 中自定义端口和绑定地址：
 
 ```json
 {
@@ -45,7 +45,8 @@ http://127.0.0.1:18789/ext/config-generator
       "config-generator": {
         "enabled": true,
         "config": {
-          "routePath": "/ext/config-generator"
+          "port": 18800,
+          "host": "127.0.0.1"
         }
       }
     }
@@ -73,7 +74,7 @@ http://127.0.0.1:18789/ext/config-generator
 ## 文件结构
 
 ```
-├── index.ts               # 插件入口（注册 HTTP handler）
+├── index.ts               # 插件入口（启动独立 HTTP 服务器）
 ├── package.json            # npm 包配置
 ├── openclaw.plugin.json    # 插件清单
 ├── public/                 # 静态 Web 页面

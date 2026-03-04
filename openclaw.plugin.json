@@ -7,17 +7,26 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {
-      "routePath": {
+      "port": {
+        "type": "number",
+        "default": 18800,
+        "description": "Port for the config generator web server"
+      },
+      "host": {
         "type": "string",
-        "default": "/ext/config-generator",
-        "description": "HTTP route path to serve the config generator UI"
+        "default": "127.0.0.1",
+        "description": "Host to bind the config generator web server"
       }
     }
   },
   "uiHints": {
-    "routePath": {
-      "label": "Route Path",
-      "placeholder": "/ext/config-generator"
+    "port": {
+      "label": "Port",
+      "placeholder": "18800"
+    },
+    "host": {
+      "label": "Host",
+      "placeholder": "127.0.0.1"
     }
   }
 }
