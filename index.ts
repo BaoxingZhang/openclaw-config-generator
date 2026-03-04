@@ -9,10 +9,13 @@ const MIME_TYPES: Record<string, string> = {
 };
 
 export default function register(api: any) {
+  api.logger.info("[config-generator] Plugin register() called");
+
   const routePath =
     api.pluginConfig?.routePath || "/plugins/config-generator";
   const publicDir = join(__dirname, "public");
 
+  api.logger.info(`[config-generator] Registering HTTP route at ${routePath}`);
   api.registerHttpRoute({
     path: routePath,
     auth: "plugin",
