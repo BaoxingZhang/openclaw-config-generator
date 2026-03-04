@@ -1,11 +1,5 @@
 const { readFileSync } = require("fs");
-const { join, extname } = require("path");
-
-const MIME_TYPES = {
-  ".html": "text/html; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
-  ".js": "application/javascript; charset=utf-8",
-};
+const { join } = require("path");
 
 module.exports = {
   id: "config-generator",
@@ -18,57 +12,37 @@ module.exports = {
       api.pluginConfig?.routePath || "/plugins/config-generator";
     const publicDir = join(__dirname, "public");
 
-    api.logger.info(
-      `[config-generator] Registering HTTP route at ${routePath}`
-    );
+    // Read and inline CSS + JS into HTML at registration time
+    let pageHtml;
+    try {
+      const html = readFileSync(join(publicDir, "index.html"), "utf-8");
+      const css = readFileSync(join(publicDir, "style.css"), "utf-8");
+      const js = readFileSync(join(publicDir, "app.js"), "utf-8");
+
+      // Replace external <link> with inline <style>
+      pageHtml = html
+        .replace(
+          '<link rel="stylesheet" href="style.css">',
+          `<style>\n${css}\n</style>`
+        )
+        .replace(
+          '<script src="app.js"></script>',
+          `<script>\n${js}\n</script>`
+        );
+
+      api.logger.info("[config-generator] HTML with inlined CSS/JS built successfully");
+    } catch (err) {
+      api.logger.error(`[config-generator] Failed to build page: ${err}`);
+      pageHtml = "<h1>Plugin load error</h1><p>Could not read public assets.</p>";
+    }
 
     api.registerHttpRoute({
       path: routePath,
       auth: "plugin",
       match: "prefix",
       handler(req, res) {
-        const rawUrl = req.url || "";
-        api.logger.info(`[config-generator] req.url = "${rawUrl}", req.originalUrl = "${(req as any).originalUrl || 'N/A'}"`);
-        const url = rawUrl.split("?")[0];
-
-        // Determine which file to serve
-        let filename;
-        if (url === routePath || url === routePath + "/") {
-          filename = "index.html";
-        } else if (url.startsWith(routePath + "/")) {
-          filename = url.slice(routePath.length + 1);
-        } else {
-          return false;
-        }
-
-        // Security: block path traversal
-        if (!filename || filename.includes("..")) {
-          res.writeHead(400, { "Content-Type": "text/plain" });
-          res.end("Bad request");
-          return true;
-        }
-
-        const ext = extname(filename);
-        const mime = MIME_TYPES[ext] || MIME_TYPES[".html"];
-
-        try {
-          const content = readFileSync(join(publicDir, filename), "utf-8");
-          res.writeHead(200, { "Content-Type": mime });
-          res.end(content);
-        } catch {
-          // Fallback to index.html
-          try {
-            const html = readFileSync(
-              join(publicDir, "index.html"),
-              "utf-8"
-            );
-            res.writeHead(200, { "Content-Type": MIME_TYPES[".html"] });
-            res.end(html);
-          } catch {
-            res.writeHead(500, { "Content-Type": "text/plain" });
-            res.end("Failed to load config generator page");
-          }
-        }
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+        res.end(pageHtml);
         return true;
       },
     });
