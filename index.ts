@@ -1,68 +1,78 @@
-import { readFileSync } from "fs";
-import { join, extname } from "path";
-import type { IncomingMessage, ServerResponse } from "http";
+const { readFileSync } = require("fs");
+const { join, extname } = require("path");
 
-const MIME_TYPES: Record<string, string> = {
+const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
 };
 
-export default function register(api: any) {
-  api.logger.info("[config-generator] Plugin register() called");
+module.exports = {
+  id: "config-generator",
+  name: "OpenClaw Config Generator",
 
-  const routePath =
-    api.pluginConfig?.routePath || "/plugins/config-generator";
-  const publicDir = join(__dirname, "public");
+  register(api) {
+    api.logger.info("[config-generator] Plugin register() called");
 
-  api.logger.info(`[config-generator] Registering HTTP route at ${routePath}`);
-  api.registerHttpRoute({
-    path: routePath,
-    auth: "plugin",
-    match: "prefix",
-    handler: (req: IncomingMessage, res: ServerResponse) => {
-      const url = (req.url || "").split("?")[0];
+    const routePath =
+      api.pluginConfig?.routePath || "/plugins/config-generator";
+    const publicDir = join(__dirname, "public");
 
-      // Determine which file to serve
-      let filename: string;
-      if (url === routePath || url === routePath + "/") {
-        filename = "index.html";
-      } else if (url.startsWith(routePath + "/")) {
-        filename = url.slice(routePath.length + 1);
-      } else {
-        return false;
-      }
+    api.logger.info(
+      `[config-generator] Registering HTTP route at ${routePath}`
+    );
 
-      // Security: block path traversal
-      if (!filename || filename.includes("..")) {
-        res.writeHead(400, { "Content-Type": "text/plain" });
-        res.end("Bad request");
-        return true;
-      }
+    api.registerHttpRoute({
+      path: routePath,
+      auth: "plugin",
+      match: "prefix",
+      handler(req, res) {
+        const url = (req.url || "").split("?")[0];
 
-      const ext = extname(filename);
-      const mime = MIME_TYPES[ext] || MIME_TYPES[".html"];
-
-      try {
-        const content = readFileSync(join(publicDir, filename), "utf-8");
-        res.writeHead(200, { "Content-Type": mime });
-        res.end(content);
-      } catch {
-        // Fallback to index.html
-        try {
-          const html = readFileSync(join(publicDir, "index.html"), "utf-8");
-          res.writeHead(200, { "Content-Type": MIME_TYPES[".html"] });
-          res.end(html);
-        } catch {
-          res.writeHead(500, { "Content-Type": "text/plain" });
-          res.end("Failed to load config generator page");
+        // Determine which file to serve
+        let filename;
+        if (url === routePath || url === routePath + "/") {
+          filename = "index.html";
+        } else if (url.startsWith(routePath + "/")) {
+          filename = url.slice(routePath.length + 1);
+        } else {
+          return false;
         }
-      }
-      return true;
-    },
-  });
 
-  api.logger.info(
-    `[config-generator] UI available at ${routePath}`
-  );
-}
+        // Security: block path traversal
+        if (!filename || filename.includes("..")) {
+          res.writeHead(400, { "Content-Type": "text/plain" });
+          res.end("Bad request");
+          return true;
+        }
+
+        const ext = extname(filename);
+        const mime = MIME_TYPES[ext] || MIME_TYPES[".html"];
+
+        try {
+          const content = readFileSync(join(publicDir, filename), "utf-8");
+          res.writeHead(200, { "Content-Type": mime });
+          res.end(content);
+        } catch {
+          // Fallback to index.html
+          try {
+            const html = readFileSync(
+              join(publicDir, "index.html"),
+              "utf-8"
+            );
+            res.writeHead(200, { "Content-Type": MIME_TYPES[".html"] });
+            res.end(html);
+          } catch {
+            res.writeHead(500, { "Content-Type": "text/plain" });
+            res.end("Failed to load config generator page");
+          }
+        }
+        return true;
+      },
+    });
+
+    api.logger.info(
+      `[config-generator] UI available at ${routePath}`
+    );
+  },
+};
