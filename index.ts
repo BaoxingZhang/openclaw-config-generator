@@ -8,8 +8,8 @@ const MIME_TYPES: Record<string, string> = {
 };
 
 export default function register(api: any) {
-  const pluginConfig = api.config?.plugins?.entries?.["openclaw-config"]?.config;
-  const routePath = pluginConfig?.routePath || "/config-generator";
+  const pluginConfig = api.config?.plugins?.entries?.["config-generator"]?.config;
+  const routePath = pluginConfig?.routePath || "/ext/config-generator";
   const publicDir = join(__dirname, "public");
 
   // Register HTTP handler to serve the config generator UI

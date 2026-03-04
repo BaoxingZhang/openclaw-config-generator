@@ -31,7 +31,7 @@ cp -r openclaw-config ~/.openclaw/extensions/openclaw-config
 启动 Gateway 后，在浏览器中访问：
 
 ```
-http://127.0.0.1:18789/config-generator
+http://127.0.0.1:18789/ext/config-generator
 ```
 
 ## 配置（可选）
@@ -42,10 +42,10 @@ http://127.0.0.1:18789/config-generator
 {
   "plugins": {
     "entries": {
-      "openclaw-config": {
+      "config-generator": {
         "enabled": true,
         "config": {
-          "routePath": "/config-generator"
+          "routePath": "/ext/config-generator"
         }
       }
     }
