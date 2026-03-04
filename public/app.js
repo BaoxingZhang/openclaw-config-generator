@@ -1,74 +1,181 @@
-// Provider to Base URL mapping
-const providerBaseUrlMap = {
-  "milocode": "https://api.joyzhi.com",
-  "ollama": "http://localhost:11434",
-  "duckcodingJP": "https://jp.duckcoding.com",
-  "FastRouter": "https://api-key.info",
-  "i7Relay": "https://i7dc.com/api"
-};
-
 // DOM elements
+const chipGroup = document.getElementById("preset-chips");
+const providerKeyInput = document.getElementById("provider_key");
+const providerNameInput = document.getElementById("provider_name");
+const websiteInput = document.getElementById("website");
+const apiEndpointSelect = document.getElementById("api_endpoint");
+const baseurlInput = document.getElementById("baseurl");
+const apikeyInput = document.getElementById("apikey");
+const modelList = document.getElementById("model-list");
+const addModelBtn = document.getElementById("addModelBtn");
 const sendBtn = document.getElementById("sendBtn");
 const statusEl = document.getElementById("status");
 const outputEl = document.getElementById("output");
 const copyBtn = document.getElementById("copyBtn");
-const providerSelect = document.getElementById("provider");
-const baseurlSelect = document.getElementById("baseurl");
-const baseurlCustom = document.getElementById("baseurl_custom");
 
-// Dynamically populate provider select
-Object.keys(providerBaseUrlMap).forEach(provider => {
-  const option = document.createElement("option");
-  option.value = provider;
-  option.textContent = provider;
-  providerSelect.appendChild(option);
-});
-providerSelect.appendChild(createCustomOption());
+// Load presets: use inlined data (Gateway) or fetch JSON (local dev)
+let PRESETS = {};
 
-// Dynamically populate baseurl select
-const uniqueUrls = [...new Set(Object.values(providerBaseUrlMap))];
-uniqueUrls.forEach(url => {
-  const option = document.createElement("option");
-  option.value = url;
-  option.textContent = url;
-  baseurlSelect.appendChild(option);
-});
-baseurlSelect.appendChild(createCustomOption());
-
-function createCustomOption() {
-  const option = document.createElement("option");
-  option.value = "custom";
-  option.textContent = "自定义";
-  return option;
+function initPresets(data) {
+  PRESETS = data;
+  Object.keys(PRESETS).forEach(key => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.dataset.preset = key;
+    chip.textContent = PRESETS[key].name;
+    chipGroup.appendChild(chip);
+  });
 }
 
-// Handle custom input visibility for all select fields
-const fields = ["baseurl", "provider", "apimode", "model_id"];
-fields.forEach(field => {
-  const select = document.getElementById(field);
-  const customInput = document.getElementById(`${field}_custom`);
+if (window.__PRESETS__) {
+  // Inlined by index.ts when running inside OpenClaw Gateway
+  initPresets(window.__PRESETS__);
+} else {
+  // Local development: fetch from file
+  fetch("presets.json")
+    .then(res => res.json())
+    .then(initPresets)
+    .catch(err => console.error("Failed to load presets.json:", err));
+}
 
-  select.addEventListener("change", () => {
-    if (select.value === "custom") {
-      customInput.classList.add("show");
-    } else {
-      customInput.classList.remove("show");
+// --- Model row management ---
+function addModelRow(id, name, opts) {
+  opts = opts || {};
+  const row = document.createElement("div");
+  row.className = "model-entry";
+
+  const mainRow = document.createElement("div");
+  mainRow.className = "model-row";
+  mainRow.innerHTML =
+    '<input type="text" class="model-id" placeholder="模型 ID" value="' + (id || "") + '">' +
+    '<input type="text" class="model-name" placeholder="显示名称" value="' + (name || "") + '">' +
+    '<button type="button" class="expand-btn" title="高级选项">&#9660;</button>' +
+    '<button type="button" class="remove-btn" title="删除">&times;</button>';
+
+  const advPanel = document.createElement("div");
+  advPanel.className = "model-advanced";
+  advPanel.innerHTML =
+    '<div class="adv-row">' +
+      '<label>推理模式 <input type="checkbox" class="adv-reasoning"' + (opts.reasoning ? " checked" : "") + '><span class="toggle-switch"></span></label>' +
+      '<label>上下文窗口 <input type="number" class="adv-context" placeholder="如 200000" value="' + (opts.contextWindow || "") + '"></label>' +
+      '<label>最大输出 Tokens <input type="number" class="adv-max-tokens" placeholder="如 128000" value="' + (opts.maxTokens || "") + '"></label>' +
+    '</div>' +
+    '<div class="adv-row">' +
+      '<label>输入价格 <input type="number" class="adv-cost-input" placeholder="0" step="any" value="' + (opts.costInput || "") + '"></label>' +
+      '<label>输出价格 <input type="number" class="adv-cost-output" placeholder="0" step="any" value="' + (opts.costOutput || "") + '"></label>' +
+      '<label>缓存读取 <input type="number" class="adv-cost-cache-read" placeholder="0" step="any" value="' + (opts.costCacheRead || "") + '"></label>' +
+      '<label>缓存写入 <input type="number" class="adv-cost-cache-write" placeholder="0" step="any" value="' + (opts.costCacheWrite || "") + '"></label>' +
+    '</div>';
+
+  row.appendChild(mainRow);
+  row.appendChild(advPanel);
+
+  // Toggle advanced panel
+  mainRow.querySelector(".expand-btn").addEventListener("click", function() {
+    const isOpen = advPanel.classList.toggle("open");
+    this.innerHTML = isOpen ? "&#9650;" : "&#9660;";
+  });
+
+  // Remove row (keep at least 1)
+  mainRow.querySelector(".remove-btn").addEventListener("click", () => {
+    if (modelList.querySelectorAll(".model-entry").length > 1) {
+      row.remove();
     }
   });
-});
 
-// Bind provider change to auto-select baseurl
-providerSelect.addEventListener("change", () => {
-  const provider = providerSelect.value;
-  if (provider === "custom") return;
+  modelList.appendChild(row);
+}
 
-  if (providerBaseUrlMap[provider]) {
-    baseurlSelect.value = providerBaseUrlMap[provider];
-    baseurlCustom.classList.remove("show");
+function clearModelRows() {
+  modelList.innerHTML = "";
+}
+
+function getModels() {
+  const entries = modelList.querySelectorAll(".model-entry");
+  const models = [];
+  entries.forEach(entry => {
+    const id = entry.querySelector(".model-id").value.trim();
+    const name = entry.querySelector(".model-name").value.trim();
+    if (!id) return;
+
+    const model = { id, name: name || id };
+
+    // Collect advanced fields only if they have values
+    const reasoning = entry.querySelector(".adv-reasoning");
+    if (reasoning && reasoning.checked) model.reasoning = true;
+    else model.reasoning = false;
+
+    model.input = ["text"];
+
+    const contextWindow = entry.querySelector(".adv-context").value.trim();
+    if (contextWindow) model.contextWindow = Number(contextWindow);
+
+    const maxTokens = entry.querySelector(".adv-max-tokens").value.trim();
+    if (maxTokens) model.maxTokens = Number(maxTokens);
+
+    const ci = entry.querySelector(".adv-cost-input").value.trim();
+    const co = entry.querySelector(".adv-cost-output").value.trim();
+    const cr = entry.querySelector(".adv-cost-cache-read").value.trim();
+    const cw = entry.querySelector(".adv-cost-cache-write").value.trim();
+    if (ci || co || cr || cw) {
+      model.cost = {
+        input: Number(ci) || 0,
+        output: Number(co) || 0,
+        cacheRead: Number(cr) || 0,
+        cacheWrite: Number(cw) || 0
+      };
+    }
+
+    models.push(model);
+  });
+  return models;
+}
+
+// Add initial empty row
+addModelRow();
+
+addModelBtn.addEventListener("click", () => addModelRow());
+
+// --- Preset chip click handler ---
+function selectPreset(key) {
+  // Update active chip
+  chipGroup.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+  const activeChip = chipGroup.querySelector('[data-preset="' + key + '"]');
+  if (activeChip) activeChip.classList.add("active");
+
+  if (key === "custom") {
+    providerKeyInput.value = "";
+    providerNameInput.value = "";
+    websiteInput.value = "";
+    apiEndpointSelect.value = "openai-completions";
+    baseurlInput.value = "";
+    apikeyInput.value = "";
+    clearModelRows();
+    addModelRow();
+    return;
   }
+
+  const preset = PRESETS[key];
+  if (!preset) return;
+
+  providerKeyInput.value = key;
+  providerNameInput.value = preset.name;
+  websiteInput.value = preset.website;
+  apiEndpointSelect.value = preset.apiEndpoint;
+  baseurlInput.value = preset.baseUrl;
+  // API Key is never preset
+  clearModelRows();
+  preset.models.forEach(m => addModelRow(m.id, m.name));
+}
+
+chipGroup.addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  selectPreset(chip.dataset.preset);
 });
 
-// Copy button
+// --- Copy button ---
 copyBtn.addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText(outputEl.textContent || "");
@@ -80,42 +187,35 @@ copyBtn.addEventListener("click", async () => {
   }
 });
 
-// Get value from select or custom input
-function getValue(field) {
-  const select = document.getElementById(field);
-  if (select.value === "custom") {
-    return document.getElementById(`${field}_custom`).value.trim();
-  }
-  return select.value;
-}
-
+// --- Generate config ---
 function setStatus(text) {
   statusEl.textContent = text;
 }
 
-// Process config: merge user config with new provider settings
 function processConfig(payload) {
-  const agents = {
-    "defaults": {
-      "model": {
-        "primary": `${payload.provider}/${payload.model_id}`
-      }
+  const providerConfig = {
+    baseUrl: payload.baseUrl,
+    apiKey: payload.apiKey,
+    models: payload.models
+  };
+
+  // Only include api field if not "Unknown"
+  if (payload.apiEndpoint) {
+    providerConfig.api = payload.apiEndpoint;
+  }
+
+  const models = {
+    mode: "merge",
+    providers: {
+      [payload.providerKey]: providerConfig
     }
   };
 
-  const models = {
-    "mode": "merge",
-    "providers": {
-      [payload.provider]: {
-        "baseUrl": payload.baseurl,
-        "apiKey": payload.apikey,
-        "api": payload.apimode,
-        "models": [
-          {
-            "id": payload.model_id,
-            "name": payload.model_id
-          }
-        ]
+  const firstModelId = payload.models.length > 0 ? payload.models[0].id : "";
+  const agents = {
+    defaults: {
+      model: {
+        primary: payload.providerKey + "/" + firstModelId
       }
     }
   };
@@ -127,41 +227,43 @@ function processConfig(payload) {
     throw new Error("配置 JSON 格式错误: " + e.message);
   }
 
-  // Merge: keep all original fields, only override models and agents
-  // NOTE: unlike the original version, we do NOT delete auth,
-  // because auth (official API) and third-party API can coexist.
-  const result = {
+  return {
     ...userConfig,
-    models: models,
-    agents: agents
+    models,
+    agents
   };
-
-  return result;
 }
 
-// Send button click handler
-sendBtn.addEventListener("click", async () => {
-  const payload = {
-    config: document.getElementById("config").value.trim(),
-    baseurl: getValue("baseurl"),
-    apikey: document.getElementById("apikey").value.trim(),
-    apimode: getValue("apimode"),
-    provider: getValue("provider"),
-    model_id: getValue("model_id")
-  };
+sendBtn.addEventListener("click", () => {
+  const providerKey = providerKeyInput.value.trim();
+  const baseUrl = baseurlInput.value.trim();
+  const apiKey = apikeyInput.value.trim();
+  const config = document.getElementById("config").value.trim();
+  const apiEndpoint = apiEndpointSelect.value;
+  const models = getModels();
 
-  if (!payload.config) {
+  if (!providerKey) {
+    outputEl.textContent = "错误: 请输入供应商标识";
+    setStatus("失败");
+    return;
+  }
+  if (!baseUrl) {
+    outputEl.textContent = "错误: 请输入 Base URL";
+    setStatus("失败");
+    return;
+  }
+  if (!apiKey) {
+    outputEl.textContent = "错误: 请输入 API Key";
+    setStatus("失败");
+    return;
+  }
+  if (!config) {
     outputEl.textContent = "错误: 请输入 Config JSON";
     setStatus("失败");
     return;
   }
-  if (!payload.baseurl) {
-    outputEl.textContent = "错误: 请选择或输入 Base URL";
-    setStatus("失败");
-    return;
-  }
-  if (!payload.apikey) {
-    outputEl.textContent = "错误: 请输入 API Key";
+  if (models.length === 0) {
+    outputEl.textContent = "错误: 请至少添加一个模型";
     setStatus("失败");
     return;
   }
@@ -171,7 +273,14 @@ sendBtn.addEventListener("click", async () => {
   outputEl.textContent = "";
 
   try {
-    const result = processConfig(payload);
+    const result = processConfig({
+      providerKey,
+      baseUrl,
+      apiKey,
+      apiEndpoint,
+      models,
+      config
+    });
     outputEl.textContent = JSON.stringify(result, null, 2);
     setStatus("完成");
   } catch (err) {
