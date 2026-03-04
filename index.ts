@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import { join, extname } from "path";
-import { registerPluginHttpRoute } from "openclaw/plugin-sdk";
+import type { IncomingMessage, ServerResponse } from "http";
 
 const MIME_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -9,14 +9,15 @@ const MIME_TYPES: Record<string, string> = {
 };
 
 export default function register(api: any) {
-  const pluginConfig =
-    api.config?.plugins?.entries?.["config-generator"]?.config;
-  const routePath = pluginConfig?.routePath || "/plugins/config-generator";
+  const routePath =
+    api.pluginConfig?.routePath || "/plugins/config-generator";
   const publicDir = join(__dirname, "public");
 
-  registerPluginHttpRoute({
+  api.registerHttpRoute({
     path: routePath,
-    handler: (req, res) => {
+    auth: "plugin",
+    match: "prefix",
+    handler: (req: IncomingMessage, res: ServerResponse) => {
       const url = (req.url || "").split("?")[0];
 
       // Determine which file to serve
@@ -26,7 +27,7 @@ export default function register(api: any) {
       } else if (url.startsWith(routePath + "/")) {
         filename = url.slice(routePath.length + 1);
       } else {
-        return false; // not our route
+        return false;
       }
 
       // Security: block path traversal
@@ -44,7 +45,7 @@ export default function register(api: any) {
         res.writeHead(200, { "Content-Type": mime });
         res.end(content);
       } catch {
-        // Unknown path: serve index.html
+        // Fallback to index.html
         try {
           const html = readFileSync(join(publicDir, "index.html"), "utf-8");
           res.writeHead(200, { "Content-Type": MIME_TYPES[".html"] });
@@ -56,11 +57,6 @@ export default function register(api: any) {
       }
       return true;
     },
-    auth: "none",
-    match: "prefix",
-    pluginId: "config-generator",
-    source: "config-generator",
-    log: (msg) => api.logger.info(msg),
   });
 
   api.logger.info(
