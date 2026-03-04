@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenClaw第三方API配置生成器</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="https://mintlify.s3.us-west-1.amazonaws.com/clawdhub/logo/light.svg" type="image/svg+xml">
+</head>
+<body>
+  <!-- Top navigation bar -->
+  <div class="topbar">
+    <svg class="topbar-logo" viewBox="0 0 24 24" fill="none">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#FF5A36" opacity="0.15"/>
+      <path d="M15.5 8.5c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5.67 1.5 1.5 1.5 1.5-.67 1.5-1.5zM11.5 8.5c0-.83-.67-1.5-1.5-1.5S8.5 7.67 8.5 8.5 9.17 10 10 10s1.5-.67 1.5-1.5zM12 17.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" fill="#FF5A36"/>
+    </svg>
+    <span class="topbar-title">OpenClaw</span>
+    <span class="topbar-breadcrumb">› <span>配置生成器</span></span>
+  </div>
+
+  <div class="wrap">
+    <!-- Page header like docs.openclaw.ai -->
+    <div class="page-header">
+      <span class="page-label">Tools</span>
+      <h1>第三方API配置生成器</h1>
+      <p class="page-desc">将第三方 API 设置安全地合并到您的 openclaw.json 配置中，无需手动编辑。</p>
+    </div>
+
+    <div class="card">
+      <h2>API 设置</h2>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="baseurl">Base URL</label>
+          <div class="field-wrapper">
+            <select id="baseurl"></select>
+            <input type="text" id="baseurl_custom" class="custom-input" placeholder="输入自定义 Base URL">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="provider">提供商（快捷选择）</label>
+          <div class="field-wrapper">
+            <select id="provider"></select>
+            <input type="text" id="provider_custom" class="custom-input" placeholder="输入自定义提供商">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="apimode">API模式</label>
+          <div class="field-wrapper">
+            <select id="apimode">
+              <option value="anthropic-messages">anthropic-messages</option>
+              <option value="openai-completions">openai-completions</option>
+              <option value="google-generative-ai">google-generative-ai</option>
+              <option value="custom">自定义</option>
+            </select>
+            <input type="text" id="apimode_custom" class="custom-input" placeholder="输入自定义 API 模式">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="model_id">模型ID</label>
+          <div class="field-wrapper">
+            <select id="model_id">
+              <option value="claude-sonnet-4-5-20250929">claude-sonnet-4-5-20250929</option>
+              <option value="gpt-5.2">gpt-5.2</option>
+              <option value="gemini-3-pro-preview">gemini-3-pro-preview</option>
+              <option value="custom">自定义</option>
+            </select>
+            <input type="text" id="model_id_custom" class="custom-input" placeholder="输入自定义模型 ID">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="apikey">API Key</label>
+        <input id="apikey" type="text" placeholder="请输入 apikey，请至第三方API站中的令牌管理处获取">
+      </div>
+
+      <div class="form-group">
+        <label for="config">Config (JSON/String)</label>
+        <textarea id="config" placeholder="粘贴您的~/.openclaw/openclaw.json内容，或在您的openclaw的web控制台中的setting下的config选项卡中，切换为Raw模式找到"></textarea>
+      </div>
+
+      <div class="actions">
+        <button id="sendBtn">生成配置</button>
+        <span class="muted" id="status">就绪</span>
+      </div>
+    </div>
+
+    <div class="codebox">
+      <button id="copyBtn" class="copy-btn">复制</button>
+      <pre><code id="output">响应将显示在这里</code></pre>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
