@@ -27,7 +27,9 @@ module.exports = {
       auth: "plugin",
       match: "prefix",
       handler(req, res) {
-        const url = (req.url || "").split("?")[0];
+        const rawUrl = req.url || "";
+        api.logger.info(`[config-generator] req.url = "${rawUrl}", req.originalUrl = "${(req as any).originalUrl || 'N/A'}"`);
+        const url = rawUrl.split("?")[0];
 
         // Determine which file to serve
         let filename;
