@@ -1,87 +1,84 @@
-# OpenClaw 第三方 API 配置生成器 - 原理说明
+# OpenClaw 第三方 API 配置生成器（插件版）
 
-## 概述
+OpenClaw 插件，提供 Web UI 将第三方 API 设置安全地合并到 `openclaw.json` 配置中。
 
-本工具用于在 OpenClaw 的原始配置文件（`~/.openclaw/openclaw.json`）中**安全地添加第三方 API 配置**，而不会破坏原有配置。
+## 安装
+
+### 方式一：从本地路径安装
+
+```bash
+openclaw plugins install /path/to/openclaw-config
+```
+
+### 方式二：链接安装（开发模式）
+
+```bash
+openclaw plugins install -l /path/to/openclaw-config
+```
+
+### 方式三：手动放置
+
+将本项目复制到全局扩展目录：
+
+```bash
+cp -r openclaw-config ~/.openclaw/extensions/openclaw-config
+```
+
+安装后重启 Gateway。
+
+## 使用
+
+启动 Gateway 后，在浏览器中访问：
+
+```
+http://127.0.0.1:18789/config-generator
+```
+
+## 配置（可选）
+
+可在 `openclaw.json` 中自定义路由路径：
+
+```json
+{
+  "plugins": {
+    "entries": {
+      "openclaw-config": {
+        "enabled": true,
+        "config": {
+          "routePath": "/config-generator"
+        }
+      }
+    }
+  }
+}
+```
 
 ## 核心原理
 
-### 配置合并流程（共 4 步）
+### 配置合并流程
 
-#### 第 1 步：构建 `agents` 对象
-
-用提供商名称和模型 ID 拼接出默认模型路径：
-
-```json
-{
-  "defaults": {
-    "model": {
-      "primary": "milocode/claude-sonnet-4-5-20250929"
-    }
-  }
-}
-```
-
-#### 第 2 步：构建 `models` 对象
-
-```json
-{
-  "mode": "merge",
-  "providers": {
-    "milocode": {
-      "baseUrl": "https://api.joyzhi.com",
-      "apiKey": "your-api-key",
-      "api": "anthropic-messages",
-      "models": [
-        { "id": "claude-sonnet-4-5-20250929", "name": "claude-sonnet-4-5-20250929" }
-      ]
-    }
-  }
-}
-```
-
-> `"mode": "merge"` 是关键，它告诉 OpenClaw 在运行时将新 provider **合并**到已有 providers 中，而非替换全部。
-
-#### 第 3 步：解析用户的原始配置
-
-将用户粘贴的 `openclaw.json` 内容解析为 JSON 对象。
-
-#### 第 4 步：合并输出
-
-```javascript
-const result = {
-  ...userConfig,      // 先展开用户原始配置的所有字段
-  models: models,     // 用新的 models 覆盖
-  agents: agents      // 用新的 agents 覆盖
-};
-```
+1. **构建 `agents` 对象** — 用提供商名称和模型 ID 拼接默认模型路径
+2. **构建 `models` 对象** — 包含 `"mode": "merge"` 确保合并而非替换
+3. **解析用户原始配置** — 解析粘贴的 `openclaw.json` 内容
+4. **合并输出** — 保留原有字段，只覆盖 `models` 和 `agents`
 
 ### 为什么不会破坏原配置？
 
 | 机制 | 说明 |
 |------|------|
-| **展开运算符 `...userConfig`** | 先把用户原配置的所有字段原样保留（如 `permissions`、`webSearch`、`mcpServers` 等） |
-| **只覆盖 `models` 和 `agents`** | 只替换这两个与第三方 API 相关的字段，其他字段完全不动 |
-| **`"mode": "merge"`** | models 中设置了 merge 模式，OpenClaw 运行时会将新 provider 合并到已有 providers，而非替换 |
-
-### 与原版的区别
-
-原版工具会执行 `delete result.auth`，移除用户的 `auth` 字段。但实际上 `auth`（官方 API 认证）和第三方 API 可以共存，用户可能同时需要两者。**本版本保留了 `auth` 字段**，不做删除。
+| **展开运算符 `...userConfig`** | 保留所有原始字段（`permissions`、`webSearch`、`mcpServers` 等） |
+| **只覆盖 `models` 和 `agents`** | 其他字段完全不动 |
+| **`"mode": "merge"`** | OpenClaw 运行时将新 provider 合并到已有 providers |
 
 ## 文件结构
 
 ```
-├── index.html    # 页面结构
-├── style.css     # 样式
-├── app.js        # 逻辑代码
-└── README.md     # 本说明文档
+├── index.ts               # 插件入口（注册 HTTP handler）
+├── package.json            # npm 包配置
+├── openclaw.plugin.json    # 插件清单
+├── public/                 # 静态 Web 页面
+│   ├── index.html
+│   ├── style.css
+│   └── app.js
+└── README.md
 ```
-
-## 使用方法
-
-1. 直接用浏览器打开 `index.html`
-2. 选择或自定义 Base URL、提供商、API 模式、模型 ID
-3. 输入第三方 API Key
-4. 粘贴你的 `~/.openclaw/openclaw.json` 原始内容
-5. 点击"生成配置"
-6. 将输出结果复制并替换回 `openclaw.json`

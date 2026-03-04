@@ -1,0 +1,14 @@
+{
+  "name": "@openclaw/config-generator",
+  "version": "1.0.0",
+  "description": "OpenClaw third-party API configuration generator plugin",
+  "license": "MIT",
+  "openclaw": {
+    "extensions": ["./index.ts"]
+  },
+  "files": [
+    "index.ts",
+    "public",
+    "openclaw.plugin.json"
+  ]
+}

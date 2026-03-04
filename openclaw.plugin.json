@@ -1,0 +1,23 @@
+{
+  "id": "openclaw-config",
+  "name": "OpenClaw Config Generator",
+  "description": "Third-party API configuration generator for OpenClaw. Provides a web UI to safely merge provider settings into openclaw.json.",
+  "version": "1.0.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "routePath": {
+        "type": "string",
+        "default": "/config-generator",
+        "description": "HTTP route path to serve the config generator UI"
+      }
+    }
+  },
+  "uiHints": {
+    "routePath": {
+      "label": "Route Path",
+      "placeholder": "/config-generator"
+    }
+  }
+}
