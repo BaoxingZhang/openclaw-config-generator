@@ -1,4 +1,3 @@
-import { createServer, IncomingMessage, ServerResponse } from "http";
 import { readFileSync } from "fs";
 import { join, extname } from "path";
 
@@ -11,48 +10,51 @@ const MIME_TYPES: Record<string, string> = {
 export default function register(api: any) {
   const pluginConfig =
     api.config?.plugins?.entries?.["config-generator"]?.config;
-  const port = pluginConfig?.port ?? 18800;
-  const host = pluginConfig?.host ?? "127.0.0.1";
+  // /plugins/* is excluded from Gateway SPA fallback by design
+  // (see src/gateway/control-ui-routing.ts classifyControlUiRequest)
+  const routePath = pluginConfig?.routePath || "/plugins/config-generator";
   const publicDir = join(__dirname, "public");
 
-  const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-    const url = (req.url || "/").split("?")[0];
-    const filePath =
-      url === "/" || url === "" ? "index.html" : url.replace(/^\//, "");
-    const ext = extname(filePath);
-    const mime = MIME_TYPES[ext] || MIME_TYPES[".html"];
+  api.registerGatewayHttpHandler((req: any, res: any, next: any) => {
+    const url = (req.url || "").split("?")[0];
 
-    try {
-      const content = readFileSync(join(publicDir, filePath), "utf-8");
-      res.writeHead(200, { "Content-Type": mime });
-      res.end(content);
-    } catch {
-      // Fallback to index.html for SPA-like behavior
+    // Exact match: serve index.html
+    if (url === routePath || url === routePath + "/") {
       try {
         const html = readFileSync(join(publicDir, "index.html"), "utf-8");
         res.writeHead(200, { "Content-Type": MIME_TYPES[".html"] });
         res.end(html);
       } catch {
-        res.writeHead(404, { "Content-Type": "text/plain" });
-        res.end("Not found");
+        res.writeHead(500, { "Content-Type": "text/plain" });
+        res.end("Failed to load config generator page");
+      }
+      return;
+    }
+
+    // Serve static assets under the route path (style.css, app.js)
+    if (url.startsWith(routePath + "/")) {
+      const filename = url.slice(routePath.length + 1);
+      const ext = extname(filename);
+      const mime = MIME_TYPES[ext];
+
+      if (mime && filename && !filename.includes("..")) {
+        try {
+          const content = readFileSync(join(publicDir, filename), "utf-8");
+          res.writeHead(200, { "Content-Type": mime });
+          res.end(content);
+        } catch {
+          res.writeHead(404, { "Content-Type": "text/plain" });
+          res.end("Not found");
+        }
+        return;
       }
     }
+
+    // Not our route, pass to next handler
+    next();
   });
 
-  server.listen(port, host, () => {
-    api.logger.info(
-      `[config-generator] UI available at http://${host}:${port}/`
-    );
-  });
-
-  // Register a background service so Gateway can manage the lifecycle
-  api.registerService({
-    id: "config-generator-server",
-    start: () =>
-      api.logger.info(`[config-generator] Server running on port ${port}`),
-    stop: () => {
-      server.close();
-      api.logger.info("[config-generator] Server stopped");
-    },
-  });
+  api.logger.info(
+    `[config-generator] UI available at ${routePath}`
+  );
 }

@@ -28,15 +28,17 @@ cp -r openclaw-config ~/.openclaw/extensions/config-generator
 
 ## 使用
 
-启动 Gateway 后，插件会自动在独立端口启动 Web 服务器。在浏览器中访问：
+启动 Gateway 后，在浏览器中访问：
 
 ```
-http://127.0.0.1:18800/
+http://127.0.0.1:18789/plugins/config-generator
 ```
+
+插件使用 `/plugins/` 前缀路由，该前缀被 Gateway 源码（`control-ui-routing.ts`）明确排除在 SPA fallback 之外，不会被重定向到 chat 页面。
 
 ## 配置（可选）
 
-可在 `openclaw.json` 中自定义端口和绑定地址：
+可在 `openclaw.json` 中自定义路由路径：
 
 ```json
 {
@@ -45,14 +47,15 @@ http://127.0.0.1:18800/
       "config-generator": {
         "enabled": true,
         "config": {
-          "port": 18800,
-          "host": "127.0.0.1"
+          "routePath": "/plugins/config-generator"
         }
       }
     }
   }
 }
 ```
+
+> 注意：自定义路径必须以 `/plugins/` 或 `/api/` 开头，否则会被 Gateway SPA fallback 拦截。
 
 ## 核心原理
 
@@ -74,7 +77,7 @@ http://127.0.0.1:18800/
 ## 文件结构
 
 ```
-├── index.ts               # 插件入口（启动独立 HTTP 服务器）
+├── index.ts               # 插件入口（注册 Gateway HTTP handler）
 ├── package.json            # npm 包配置
 ├── openclaw.plugin.json    # 插件清单
 ├── public/                 # 静态 Web 页面

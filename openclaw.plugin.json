@@ -7,26 +7,17 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {
-      "port": {
-        "type": "number",
-        "default": 18800,
-        "description": "Port for the config generator web server"
-      },
-      "host": {
+      "routePath": {
         "type": "string",
-        "default": "127.0.0.1",
-        "description": "Host to bind the config generator web server"
+        "default": "/plugins/config-generator",
+        "description": "HTTP route path to serve the config generator UI (must start with /plugins/ or /api/ to bypass Gateway SPA fallback)"
       }
     }
   },
   "uiHints": {
-    "port": {
-      "label": "Port",
-      "placeholder": "18800"
-    },
-    "host": {
-      "label": "Host",
-      "placeholder": "127.0.0.1"
+    "routePath": {
+      "label": "Route Path",
+      "placeholder": "/plugins/config-generator"
     }
   }
 }
