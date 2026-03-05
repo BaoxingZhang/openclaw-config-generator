@@ -4,11 +4,23 @@ OpenClaw 插件，提供 Web UI 将第三方 API 设置安全地合并到 `openc
 
 ## 安装
 
-### 方式一：从 GitHub 安装
+### 方式一：从 npm 安装（推荐）
+
+```bash
+openclaw plugins install openclaw-config-generator
+```
+
+安装后重启 Gateway 即可使用：
+
+```bash
+openclaw gateway restart
+```
+
+### 方式二：从 GitHub 安装
 
 ```bash
 # 克隆到 OpenClaw 扩展目录
-git clone https://github.com/BaoxingZhang/openclaw-config.git ~/.openclaw/extensions/config-generator
+git clone https://github.com/BaoxingZhang/openclaw-config-generator.git ~/.openclaw/extensions/config-generator
 
 # 启用插件
 openclaw plugins enable config-generator
@@ -20,7 +32,7 @@ openclaw plugins allow config-generator
 openclaw gateway restart
 ```
 
-### 方式二：手动放置
+### 方式三：手动放置
 
 将本项目复制到全局扩展目录：
 
@@ -45,6 +57,8 @@ http://127.0.0.1:18789/plugins/config-generator
 - **预设供应商** — 选择预设后自动填充供应商信息、API 端点、模型列表等字段
 - **自定义配置** — 所有字段均可手动输入，支持完全自定义的供应商
 - **动态模型列表** — 可添加多个模型，每个模型支持展开高级配置（推理模式、上下文窗口、Token 限制、费用等）
+- **导入配置** — 一键读取服务器上的 `~/.openclaw/openclaw.json`
+- **应用配置** — 验证必填项后，将合并结果直接写入服务器配置文件（自动备份原文件）
 - **配置合并** — 将第三方 API 设置安全合并到现有的 `openclaw.json`，不会破坏原有配置
 
 ## 本地开发
@@ -111,3 +125,7 @@ npx serve public
 │   └── presets.json         # 预设供应商数据（修改此文件管理供应商列表）
 └── README.md
 ```
+
+## License
+
+MIT

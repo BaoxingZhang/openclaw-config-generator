@@ -1,8 +1,25 @@
 {
-  "name": "@openclaw/config-generator",
+  "name": "openclaw-config-generator",
   "version": "1.0.0",
-  "description": "OpenClaw third-party API configuration generator plugin",
+  "description": "OpenClaw plugin — Web UI to merge third-party API provider settings into openclaw.json",
   "license": "MIT",
+  "author": "BaoxingZhang",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BaoxingZhang/openclaw-config-generator.git"
+  },
+  "homepage": "https://github.com/BaoxingZhang/openclaw-config-generator#readme",
+  "bugs": {
+    "url": "https://github.com/BaoxingZhang/openclaw-config-generator/issues"
+  },
+  "keywords": [
+    "openclaw",
+    "openclaw-plugin",
+    "config",
+    "api",
+    "provider",
+    "generator"
+  ],
   "openclaw": {
     "extensions": ["./index.ts"]
   },
