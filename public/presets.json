@@ -1,10 +1,14 @@
 {
   "milocode": {
-    "name": "milocode",
-    "website": "https://api.joyzhi.com",
+    "name": "BaoxingAPI",
+    "website": "https://api.aihuihuayyds.com",
     "apiEndpoint": "openai-completions",
-    "baseUrl": "https://api.joyzhi.com",
-    "models": [{ "id": "claude-sonnet-4-5-20250929", "name": "Claude Sonnet 4.5" },{ "id": "claude-sonnet-4-6-20250929", "name": "Claude Sonnet 4.6" }]
+    "baseUrl": "https://api.aihuihuayyds.com/v1",
+    "models": [
+      { "id": "gpt-5.2", "name": "gpt-5.2" },
+      { "id": "gpt-5.2-codex", "name": "gpt-5.2-codex" },
+      { "id": "gpt-5.3-codex", "name": "gpt-5.3-codex" }
+    ]
   },
   "ollama": {
     "name": "ollama",
