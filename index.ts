@@ -1,5 +1,6 @@
 const { readFileSync } = require("fs");
 const { join } = require("path");
+const { homedir } = require("os");
 
 module.exports = {
   id: "config-generator",
@@ -45,6 +46,22 @@ module.exports = {
       auth: "plugin",
       match: "prefix",
       handler(req, res) {
+        const urlPath = (req.url || "").split("?")[0].replace(/\/+$/, "");
+        const subPath = urlPath.slice(routePath.length);
+
+        if (subPath === "/api/read-config") {
+          const configPath = join(homedir(), ".openclaw", "openclaw.json");
+          try {
+            const content = readFileSync(configPath, "utf-8");
+            res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+            res.end(JSON.stringify({ success: true, content }));
+          } catch (err) {
+            res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+            res.end(JSON.stringify({ success: false, error: err.message }));
+          }
+          return true;
+        }
+
         res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
         res.end(pageHtml);
         return true;

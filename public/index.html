@@ -89,7 +89,10 @@
 
       <!-- 8. Config JSON -->
       <div class="form-group">
-        <label for="config">Config (JSON/String)</label>
+        <div class="label-with-action">
+          <label for="config">Config (JSON/String)</label>
+          <button type="button" id="importConfigBtn" class="import-btn">导入配置</button>
+        </div>
         <textarea id="config" placeholder="粘贴您的~/.openclaw/openclaw.json内容，或在您的openclaw的web控制台中的setting下的config选项卡中，切换为Raw模式找到"></textarea>
       </div>
 

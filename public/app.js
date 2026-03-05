@@ -12,6 +12,8 @@ const sendBtn = document.getElementById("sendBtn");
 const statusEl = document.getElementById("status");
 const outputEl = document.getElementById("output");
 const copyBtn = document.getElementById("copyBtn");
+const importConfigBtn = document.getElementById("importConfigBtn");
+const configTextarea = document.getElementById("config");
 
 // Load presets: use inlined data (Gateway) or fetch JSON (local dev)
 let PRESETS = {};
@@ -184,6 +186,32 @@ copyBtn.addEventListener("click", async () => {
   } catch {
     copyBtn.textContent = "失败";
     setTimeout(() => (copyBtn.textContent = "复制"), 1200);
+  }
+});
+
+// --- Import config from server (~/.openclaw/openclaw.json) ---
+importConfigBtn.addEventListener("click", async () => {
+  importConfigBtn.disabled = true;
+  importConfigBtn.textContent = "读取中...";
+  try {
+    const basePath = window.location.pathname.replace(/\/+$/, "");
+    const res = await fetch(basePath + "/api/read-config");
+    const data = await res.json();
+    if (data.success) {
+      configTextarea.value = data.content;
+      importConfigBtn.textContent = "已导入";
+    } else {
+      importConfigBtn.textContent = "读取失败";
+      console.error("Import config error:", data.error);
+    }
+  } catch (err) {
+    importConfigBtn.textContent = "读取失败";
+    console.error("Import config fetch error:", err);
+  } finally {
+    setTimeout(() => {
+      importConfigBtn.textContent = "导入配置";
+      importConfigBtn.disabled = false;
+    }, 1500);
   }
 });
 

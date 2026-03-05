@@ -188,6 +188,32 @@ textarea {
   margin-bottom: 16px;
 }
 
+.label-with-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label-with-action label {
+  margin-bottom: 0;
+}
+
+.import-btn {
+  padding: 3px 10px;
+  font-size: 12px;
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.import-btn:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
 /* Actions */
 .actions {
   display: flex;
