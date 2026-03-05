@@ -1,41 +1,70 @@
 {
+  "custom-vibecodingapi-ai": {
+    "name": "LionCC狮子",
+    "website": "https://vibecodingapi.ai",
+    "apiEndpoint": "anthropic-messages",
+    "baseUrl": "https://vibecodingapi.ai",
+    "models": [
+      {
+        "id": "claude-opus-4-6",
+        "name": "claude-opus-4-6"
+      },
+      {
+        "id": "claude-sonnet-4-6",
+        "name": "claude-sonnet-4-6"
+      }
+    ]
+  },
+  "custom-bailian-console-aliyun-com": {
+    "name": "Qwen Coder",
+    "website": "https://bailian.console.aliyun.com",
+    "apiEndpoint": "openai-completions",
+    "baseUrl": "https://coding.dashscope.aliyuncs.com/v1",
+    "models": [
+      {
+        "id": "qwen3.5-plus",
+        "name": "qwen3.5-plus"
+      },
+      {
+        "id": "qwen3-coder-next",
+        "name": "qwen3-coder-next"
+      },
+      {
+        "id": "qwen3-coder-plus",
+        "name": "qwen3-coder-plus"
+      }
+    ]
+  },
+  "custom-open-bigmodel-cn": {
+    "name": "Zhipu GLM",
+    "website": "https://open.bigmodel.cn",
+    "apiEndpoint": "openai-completions",
+    "baseUrl": "https://open.bigmodel.cn/api/paas/v4",
+    "models": [
+      {
+        "id": "glm-5",
+        "name": "glm-5"
+      }
+    ]
+  },
   "custom-api-aihuihuayyds-com": {
     "name": "BaoxingAPI",
     "website": "https://api.aihuihuayyds.com",
     "apiEndpoint": "openai-completions",
     "baseUrl": "https://api.aihuihuayyds.com/v1",
     "models": [
-      { "id": "gpt-5.2", "name": "gpt-5.2" },
-      { "id": "gpt-5.2-codex", "name": "gpt-5.2-codex" },
-      { "id": "gpt-5.3-codex", "name": "gpt-5.3-codex" }
+      {
+        "id": "gpt-5.2",
+        "name": "gpt-5.2"
+      },
+      {
+        "id": "gpt-5.2-codex",
+        "name": "gpt-5.2-codex"
+      },
+      {
+        "id": "gpt-5.3-codex",
+        "name": "gpt-5.3-codex"
+      }
     ]
-  },
-  "ollama": {
-    "name": "ollama",
-    "website": "http://localhost:11434",
-    "apiEndpoint": "openai-completions",
-    "baseUrl": "http://localhost:11434",
-    "models": [{ "id": "llama3", "name": "Llama 3" }]
-  },
-  "duckcodingJP": {
-    "name": "duckcodingJP",
-    "website": "https://jp.duckcoding.com",
-    "apiEndpoint": "openai-completions",
-    "baseUrl": "https://jp.duckcoding.com",
-    "models": [{ "id": "claude-sonnet-4-5-20250929", "name": "Claude Sonnet 4.5" }]
-  },
-  "FastRouter": {
-    "name": "FastRouter",
-    "website": "https://api-key.info",
-    "apiEndpoint": "openai-completions",
-    "baseUrl": "https://api-key.info",
-    "models": [{ "id": "claude-sonnet-4-5-20250929", "name": "Claude Sonnet 4.5" }]
-  },
-  "i7Relay": {
-    "name": "i7Relay",
-    "website": "https://i7dc.com/api",
-    "apiEndpoint": "openai-completions",
-    "baseUrl": "https://i7dc.com/api",
-    "models": [{ "id": "claude-sonnet-4-5-20250929", "name": "Claude Sonnet 4.5" }]
   }
 }
