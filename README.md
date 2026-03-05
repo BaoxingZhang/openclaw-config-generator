@@ -20,13 +20,13 @@ openclaw gateway restart
 
 ```bash
 # 克隆到 OpenClaw 扩展目录
-git clone https://github.com/BaoxingZhang/openclaw-config-generator.git ~/.openclaw/extensions/config-generator
+git clone https://github.com/BaoxingZhang/openclaw-config-generator.git ~/.openclaw/extensions/openclaw-config-generator
 
 # 启用插件
-openclaw plugins enable config-generator
+openclaw plugins enable openclaw-config-generator
 
 # 信任插件（首次需要）
-openclaw plugins allow config-generator
+openclaw plugins allow openclaw-config-generator
 
 # 重启 Gateway
 openclaw gateway restart
@@ -37,9 +37,9 @@ openclaw gateway restart
 将本项目复制到全局扩展目录：
 
 ```bash
-cp -r openclaw-config ~/.openclaw/extensions/config-generator
-openclaw plugins enable config-generator
-openclaw plugins allow config-generator
+cp -r openclaw-config-generator ~/.openclaw/extensions/openclaw-config-generator
+openclaw plugins enable openclaw-config-generator
+openclaw plugins allow openclaw-config-generator
 ```
 
 安装后重启 Gateway。
@@ -49,7 +49,7 @@ openclaw plugins allow config-generator
 启动 Gateway 后，在浏览器中访问：
 
 ```
-http://127.0.0.1:18789/plugins/config-generator
+http://127.0.0.1:18789/plugins/openclaw-config-generator
 ```
 
 ### 功能
@@ -82,10 +82,10 @@ npx serve public
 {
   "plugins": {
     "entries": {
-      "config-generator": {
+      "openclaw-config-generator": {
         "enabled": true,
         "config": {
-          "routePath": "/plugins/config-generator"
+          "routePath": "/plugins/openclaw-config-generator"
         }
       }
     }
@@ -94,6 +94,7 @@ npx serve public
 ```
 
 > 注意：自定义路径必须以 `/plugins/` 或 `/api/` 开头，否则会被 Gateway SPA fallback 拦截。
+> 插件 ID 为 `openclaw-config-generator`，扩展目录为 `~/.openclaw/extensions/openclaw-config-generator/`。
 
 ## 核心原理
 

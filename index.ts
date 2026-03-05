@@ -3,14 +3,14 @@ const { join } = require("path");
 const { homedir } = require("os");
 
 module.exports = {
-  id: "config-generator",
+  id: "openclaw-config-generator",
   name: "OpenClaw Config Generator",
 
   register(api) {
-    api.logger.info("[config-generator] Plugin register() called");
+    api.logger.info("[openclaw-config-generator] Plugin register() called");
 
     const routePath =
-      api.pluginConfig?.routePath || "/plugins/config-generator";
+      api.pluginConfig?.routePath || "/plugins/openclaw-config-generator";
     const publicDir = join(__dirname, "public");
 
     // Read and inline CSS + JS + presets JSON into HTML at registration time
@@ -35,9 +35,9 @@ module.exports = {
           `${presetsScript}\n<script>\n${js}\n</script>`
         );
 
-      api.logger.info("[config-generator] HTML with inlined CSS/JS/presets built successfully");
+      api.logger.info("[openclaw-config-generator] HTML with inlined CSS/JS/presets built successfully");
     } catch (err) {
-      api.logger.error(`[config-generator] Failed to build page: ${err}`);
+      api.logger.error(`[openclaw-config-generator] Failed to build page: ${err}`);
       pageHtml = "<h1>Plugin load error</h1><p>Could not read public assets.</p>";
     }
 
@@ -83,7 +83,7 @@ module.exports = {
                   + String(now.getSeconds()).padStart(2, "0");
                 const backupPath = configPath + "." + ts;
                 copyFileSync(configPath, backupPath);
-                api.logger.info(`[config-generator] Backed up config to ${backupPath}`);
+                api.logger.info(`[openclaw-config-generator] Backed up config to ${backupPath}`);
               }
 
               writeFileSync(configPath, body.content, "utf-8");
@@ -104,7 +104,7 @@ module.exports = {
     });
 
     api.logger.info(
-      `[config-generator] UI available at ${routePath}`
+      `[openclaw-config-generator] UI available at ${routePath}`
     );
   },
 };
