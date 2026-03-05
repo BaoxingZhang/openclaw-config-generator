@@ -1,3 +1,50 @@
+// --- Toast notification ---
+const toastContainer = document.createElement("div");
+toastContainer.className = "toast-container";
+document.body.appendChild(toastContainer);
+
+function showToast(message, type) {
+  type = type || "error";
+  const icons = { error: "!", success: "\u2713", warn: "\u26A0" };
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.innerHTML =
+    '<span class="toast-icon ' + type + '">' + (icons[type] || "!") + '</span>' +
+    '<span class="toast-msg">' + message + '</span>';
+  toastContainer.appendChild(el);
+  setTimeout(() => {
+    el.classList.add("toast-out");
+    el.addEventListener("animationend", () => el.remove());
+  }, 2800);
+}
+
+// --- Styled confirm dialog ---
+function showConfirm(title, message) {
+  return new Promise(resolve => {
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+    overlay.innerHTML =
+      '<div class="modal-card">' +
+        '<div class="modal-title">' + title + '</div>' +
+        '<div class="modal-body">' + message + '</div>' +
+        '<div class="modal-actions">' +
+          '<button type="button" class="btn-cancel">\u53D6\u6D88</button>' +
+          '<button type="button" class="btn-confirm">\u786E\u8BA4</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+
+    function close(result) {
+      overlay.classList.add("modal-out");
+      overlay.addEventListener("animationend", () => overlay.remove());
+      resolve(result);
+    }
+    overlay.querySelector(".btn-cancel").addEventListener("click", () => close(false));
+    overlay.querySelector(".btn-confirm").addEventListener("click", () => close(true));
+    overlay.addEventListener("click", e => { if (e.target === overlay) close(false); });
+  });
+}
+
 // DOM elements
 const chipGroup = document.getElementById("preset-chips");
 const providerKeyInput = document.getElementById("provider_key");
@@ -278,11 +325,11 @@ function validateAndGenerate() {
   const apiEndpoint = apiEndpointSelect.value;
   const models = getModels();
 
-  if (!providerKey) { outputEl.textContent = "错误: 请输入供应商标识"; setStatus("失败"); return null; }
-  if (!baseUrl) { outputEl.textContent = "错误: 请输入 Base URL"; setStatus("失败"); return null; }
-  if (!apiKey) { outputEl.textContent = "错误: 请输入 API Key"; setStatus("失败"); return null; }
-  if (!config) { outputEl.textContent = "错误: 请输入 Config JSON"; setStatus("失败"); return null; }
-  if (models.length === 0) { outputEl.textContent = "错误: 请至少添加一个模型"; setStatus("失败"); return null; }
+  if (!providerKey) { showToast("请输入供应商标识"); setStatus("就绪"); return null; }
+  if (!baseUrl) { showToast("请输入 Base URL"); setStatus("就绪"); return null; }
+  if (!apiKey) { showToast("请输入 API Key"); setStatus("就绪"); return null; }
+  if (!config) { showToast("请输入 Config JSON"); setStatus("就绪"); return null; }
+  if (models.length === 0) { showToast("请至少添加一个模型"); setStatus("就绪"); return null; }
 
   return processConfig({ providerKey, baseUrl, apiKey, apiEndpoint, models, config });
 }
@@ -297,8 +344,9 @@ sendBtn.addEventListener("click", () => {
     if (!result) { sendBtn.disabled = false; return; }
     outputEl.textContent = JSON.stringify(result, null, 2);
     setStatus("完成");
+    showToast("配置已生成", "success");
   } catch (err) {
-    outputEl.textContent = "错误: " + String(err.message || err);
+    showToast(String(err.message || err));
     setStatus("失败");
   } finally {
     sendBtn.disabled = false;
@@ -307,7 +355,11 @@ sendBtn.addEventListener("click", () => {
 
 // --- Apply config: generate + backup + overwrite ~/.openclaw/openclaw.json ---
 applyConfigBtn.addEventListener("click", async () => {
-  if (!confirm("是否生成配置并应用？将备份原配置文件。")) return;
+  const confirmed = await showConfirm(
+    "应用配置",
+    "是否生成配置并写入服务器？原配置文件将自动备份。"
+  );
+  if (!confirmed) return;
 
   setStatus("处理中...");
   applyConfigBtn.disabled = true;
@@ -330,12 +382,13 @@ applyConfigBtn.addEventListener("click", async () => {
 
     if (data.success) {
       setStatus("已应用");
+      showToast("配置已成功写入服务器", "success");
     } else {
       setStatus("写入失败");
-      outputEl.textContent = "错误: " + (data.error || "未知错误");
+      showToast(data.error || "写入失败，请重试");
     }
   } catch (err) {
-    outputEl.textContent = "错误: " + String(err.message || err);
+    showToast(String(err.message || err));
     setStatus("失败");
   } finally {
     applyConfigBtn.disabled = false;
