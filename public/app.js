@@ -233,28 +233,35 @@ function processConfig(payload) {
     providerConfig.api = payload.apiEndpoint;
   }
 
-  const models = {
-    mode: "merge",
-    providers: {
-      [payload.providerKey]: providerConfig
-    }
-  };
-
-  const firstModelId = payload.models.length > 0 ? payload.models[0].id : "";
-  const agents = {
-    defaults: {
-      model: {
-        primary: payload.providerKey + "/" + firstModelId
-      }
-    }
-  };
-
   let userConfig;
   try {
     userConfig = JSON.parse(payload.config);
   } catch (e) {
     throw new Error("配置 JSON 格式错误: " + e.message);
   }
+
+  const existingProviders = (userConfig.models && userConfig.models.providers) || {};
+  const models = {
+    ...userConfig.models,
+    mode: "merge",
+    providers: {
+      ...existingProviders,
+      [payload.providerKey]: providerConfig
+    }
+  };
+
+  const firstModelId = payload.models.length > 0 ? payload.models[0].id : "";
+  const existingAgents = userConfig.agents || {};
+  const existingDefaults = existingAgents.defaults || {};
+  const agents = {
+    ...existingAgents,
+    defaults: {
+      ...existingDefaults,
+      model: {
+        primary: payload.providerKey + "/" + firstModelId
+      }
+    }
+  };
 
   return {
     ...userConfig,
