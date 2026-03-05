@@ -1,5 +1,5 @@
 {
-  "milocode": {
+  "custom-api-aihuihuayyds-com": {
     "name": "BaoxingAPI",
     "website": "https://api.aihuihuayyds.com",
     "apiEndpoint": "openai-completions",
