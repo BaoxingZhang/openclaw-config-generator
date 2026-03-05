@@ -13,6 +13,7 @@ const statusEl = document.getElementById("status");
 const outputEl = document.getElementById("output");
 const copyBtn = document.getElementById("copyBtn");
 const importConfigBtn = document.getElementById("importConfigBtn");
+const applyConfigBtn = document.getElementById("applyConfigBtn");
 const configTextarea = document.getElementById("config");
 
 // Load presets: use inlined data (Gateway) or fetch JSON (local dev)
@@ -262,53 +263,31 @@ function processConfig(payload) {
   };
 }
 
-sendBtn.addEventListener("click", () => {
+function validateAndGenerate() {
   const providerKey = providerKeyInput.value.trim();
   const baseUrl = baseurlInput.value.trim();
   const apiKey = apikeyInput.value.trim();
-  const config = document.getElementById("config").value.trim();
+  const config = configTextarea.value.trim();
   const apiEndpoint = apiEndpointSelect.value;
   const models = getModels();
 
-  if (!providerKey) {
-    outputEl.textContent = "错误: 请输入供应商标识";
-    setStatus("失败");
-    return;
-  }
-  if (!baseUrl) {
-    outputEl.textContent = "错误: 请输入 Base URL";
-    setStatus("失败");
-    return;
-  }
-  if (!apiKey) {
-    outputEl.textContent = "错误: 请输入 API Key";
-    setStatus("失败");
-    return;
-  }
-  if (!config) {
-    outputEl.textContent = "错误: 请输入 Config JSON";
-    setStatus("失败");
-    return;
-  }
-  if (models.length === 0) {
-    outputEl.textContent = "错误: 请至少添加一个模型";
-    setStatus("失败");
-    return;
-  }
+  if (!providerKey) { outputEl.textContent = "错误: 请输入供应商标识"; setStatus("失败"); return null; }
+  if (!baseUrl) { outputEl.textContent = "错误: 请输入 Base URL"; setStatus("失败"); return null; }
+  if (!apiKey) { outputEl.textContent = "错误: 请输入 API Key"; setStatus("失败"); return null; }
+  if (!config) { outputEl.textContent = "错误: 请输入 Config JSON"; setStatus("失败"); return null; }
+  if (models.length === 0) { outputEl.textContent = "错误: 请至少添加一个模型"; setStatus("失败"); return null; }
 
+  return processConfig({ providerKey, baseUrl, apiKey, apiEndpoint, models, config });
+}
+
+sendBtn.addEventListener("click", () => {
   setStatus("处理中...");
   sendBtn.disabled = true;
   outputEl.textContent = "";
 
   try {
-    const result = processConfig({
-      providerKey,
-      baseUrl,
-      apiKey,
-      apiEndpoint,
-      models,
-      config
-    });
+    const result = validateAndGenerate();
+    if (!result) { sendBtn.disabled = false; return; }
     outputEl.textContent = JSON.stringify(result, null, 2);
     setStatus("完成");
   } catch (err) {
@@ -316,5 +295,42 @@ sendBtn.addEventListener("click", () => {
     setStatus("失败");
   } finally {
     sendBtn.disabled = false;
+  }
+});
+
+// --- Apply config: generate + backup + overwrite ~/.openclaw/openclaw.json ---
+applyConfigBtn.addEventListener("click", async () => {
+  if (!confirm("是否生成配置并应用？将备份原配置文件。")) return;
+
+  setStatus("处理中...");
+  applyConfigBtn.disabled = true;
+  outputEl.textContent = "";
+
+  try {
+    const result = validateAndGenerate();
+    if (!result) { applyConfigBtn.disabled = false; return; }
+
+    const jsonStr = JSON.stringify(result, null, 2);
+    outputEl.textContent = jsonStr;
+
+    const basePath = window.location.pathname.replace(/\/+$/, "");
+    const res = await fetch(basePath + "/api/write-config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: jsonStr })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      setStatus("已应用");
+    } else {
+      setStatus("写入失败");
+      outputEl.textContent = "错误: " + (data.error || "未知错误");
+    }
+  } catch (err) {
+    outputEl.textContent = "错误: " + String(err.message || err);
+    setStatus("失败");
+  } finally {
+    applyConfigBtn.disabled = false;
   }
 });

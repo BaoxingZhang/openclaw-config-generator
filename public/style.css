@@ -214,6 +214,16 @@ textarea {
   color: #fff;
 }
 
+.action-btns {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.action-btns .import-btn {
+  margin-bottom: 0;
+}
+
 /* Actions */
 .actions {
   display: flex;

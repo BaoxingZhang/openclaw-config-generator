@@ -1,4 +1,4 @@
-const { readFileSync } = require("fs");
+const { readFileSync, writeFileSync, copyFileSync, existsSync } = require("fs");
 const { join } = require("path");
 const { homedir } = require("os");
 
@@ -49,16 +49,51 @@ module.exports = {
         const urlPath = (req.url || "").split("?")[0].replace(/\/+$/, "");
         const subPath = urlPath.slice(routePath.length);
 
+        const jsonHeaders = { "Content-Type": "application/json; charset=utf-8" };
+
         if (subPath === "/api/read-config") {
           const configPath = join(homedir(), ".openclaw", "openclaw.json");
           try {
             const content = readFileSync(configPath, "utf-8");
-            res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+            res.writeHead(200, jsonHeaders);
             res.end(JSON.stringify({ success: true, content }));
           } catch (err) {
-            res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+            res.writeHead(200, jsonHeaders);
             res.end(JSON.stringify({ success: false, error: err.message }));
           }
+          return true;
+        }
+
+        if (subPath === "/api/write-config" && req.method === "POST") {
+          const chunks = [];
+          req.on("data", (chunk) => chunks.push(chunk));
+          req.on("end", () => {
+            try {
+              const body = JSON.parse(Buffer.concat(chunks).toString());
+              const configPath = join(homedir(), ".openclaw", "openclaw.json");
+
+              if (existsSync(configPath)) {
+                const now = new Date();
+                const ts = now.getFullYear().toString()
+                  + String(now.getMonth() + 1).padStart(2, "0")
+                  + String(now.getDate()).padStart(2, "0")
+                  + "_"
+                  + String(now.getHours()).padStart(2, "0")
+                  + String(now.getMinutes()).padStart(2, "0")
+                  + String(now.getSeconds()).padStart(2, "0");
+                const backupPath = configPath + "." + ts;
+                copyFileSync(configPath, backupPath);
+                api.logger.info(`[config-generator] Backed up config to ${backupPath}`);
+              }
+
+              writeFileSync(configPath, body.content, "utf-8");
+              res.writeHead(200, jsonHeaders);
+              res.end(JSON.stringify({ success: true }));
+            } catch (err) {
+              res.writeHead(200, jsonHeaders);
+              res.end(JSON.stringify({ success: false, error: err.message }));
+            }
+          });
           return true;
         }
 
