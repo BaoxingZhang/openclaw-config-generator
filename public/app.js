@@ -355,6 +355,9 @@ sendBtn.addEventListener("click", () => {
 
 // --- Apply config: generate + backup + overwrite ~/.openclaw/openclaw.json ---
 applyConfigBtn.addEventListener("click", async () => {
+  const result = validateAndGenerate();
+  if (!result) return;
+
   const confirmed = await showConfirm(
     "应用配置",
     "是否生成配置并写入服务器？原配置文件将自动备份。"
@@ -366,9 +369,6 @@ applyConfigBtn.addEventListener("click", async () => {
   outputEl.textContent = "";
 
   try {
-    const result = validateAndGenerate();
-    if (!result) { applyConfigBtn.disabled = false; return; }
-
     const jsonStr = JSON.stringify(result, null, 2);
     outputEl.textContent = jsonStr;
 
