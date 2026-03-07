@@ -2,6 +2,22 @@ const { readFileSync, writeFileSync, copyFileSync, existsSync } = require("fs");
 const { join } = require("path");
 const { homedir } = require("os");
 
+const REMOTE_PRESETS_URL =
+  "https://cdn.jsdelivr.net/gh/BaoxingZhang/openclaw-config-generator@main/public/presets.json";
+
+function buildPageHtml(html, css, js, presetsJson) {
+  const presetsScript = `<script>window.__PRESETS__ = ${presetsJson};</script>`;
+  return html
+    .replace(
+      '<link rel="stylesheet" href="style.css">',
+      `<style>\n${css}\n</style>`
+    )
+    .replace(
+      '<script src="app.js"></script>',
+      `${presetsScript}\n<script>\n${js}\n</script>`
+    );
+}
+
 module.exports = {
   id: "openclaw-config-generator",
   name: "OpenClaw Config Generator",
@@ -13,32 +29,36 @@ module.exports = {
       api.pluginConfig?.routePath || "/plugins/openclaw-config-generator";
     const publicDir = join(__dirname, "public");
 
-    // Read and inline CSS + JS + presets JSON into HTML at registration time
     let pageHtml;
+    let html, css, js;
     try {
-      const html = readFileSync(join(publicDir, "index.html"), "utf-8");
-      const css = readFileSync(join(publicDir, "style.css"), "utf-8");
-      const js = readFileSync(join(publicDir, "app.js"), "utf-8");
-      const presets = readFileSync(join(publicDir, "presets.json"), "utf-8");
+      html = readFileSync(join(publicDir, "index.html"), "utf-8");
+      css = readFileSync(join(publicDir, "style.css"), "utf-8");
+      js = readFileSync(join(publicDir, "app.js"), "utf-8");
+      const localPresets = readFileSync(join(publicDir, "presets.json"), "utf-8");
 
-      // Inject presets as a global variable before app.js runs
-      const presetsScript = `<script>window.__PRESETS__ = ${presets};</script>`;
-
-      // Replace external <link> with inline <style>
-      pageHtml = html
-        .replace(
-          '<link rel="stylesheet" href="style.css">',
-          `<style>\n${css}\n</style>`
-        )
-        .replace(
-          '<script src="app.js"></script>',
-          `${presetsScript}\n<script>\n${js}\n</script>`
-        );
-
+      pageHtml = buildPageHtml(html, css, js, localPresets);
       api.logger.info("[openclaw-config-generator] HTML with inlined CSS/JS/presets built successfully");
     } catch (err) {
       api.logger.error(`[openclaw-config-generator] Failed to build page: ${err}`);
       pageHtml = "<h1>Plugin load error</h1><p>Could not read public assets.</p>";
+    }
+
+    if (html && css && js) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 5000);
+      fetch(REMOTE_PRESETS_URL, { signal: ctrl.signal })
+        .then((res) => res.text())
+        .then((remotePresets) => {
+          clearTimeout(timer);
+          JSON.parse(remotePresets);
+          pageHtml = buildPageHtml(html, css, js, remotePresets);
+          api.logger.info("[openclaw-config-generator] Presets updated from remote");
+        })
+        .catch((err) => {
+          clearTimeout(timer);
+          api.logger.info(`[openclaw-config-generator] Remote presets fetch skipped: ${err.message || err}`);
+        });
     }
 
     api.registerHttpRoute({

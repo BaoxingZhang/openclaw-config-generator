@@ -63,7 +63,10 @@ const importConfigBtn = document.getElementById("importConfigBtn");
 const applyConfigBtn = document.getElementById("applyConfigBtn");
 const configTextarea = document.getElementById("config");
 
-// Load presets: use inlined data (Gateway) or fetch JSON (local dev)
+// Load presets: remote first, then inlined data (Gateway) or local file (dev)
+var REMOTE_PRESETS_URL =
+  "https://cdn.jsdelivr.net/gh/BaoxingZhang/openclaw-config-generator@main/public/presets.json";
+
 let PRESETS = {};
 
 function initPresets(data) {
@@ -78,16 +81,26 @@ function initPresets(data) {
   });
 }
 
-if (window.__PRESETS__) {
-  // Inlined by index.ts when running inside OpenClaw Gateway
-  initPresets(window.__PRESETS__);
-} else {
-  // Local development: fetch from file
-  fetch("presets.json")
-    .then(res => res.json())
-    .then(initPresets)
-    .catch(err => console.error("Failed to load presets.json:", err));
+function loadPresetsFromRemote() {
+  var ctrl = new AbortController();
+  var timer = setTimeout(function() { ctrl.abort(); }, 3000);
+  return fetch(REMOTE_PRESETS_URL, { signal: ctrl.signal })
+    .then(function(res) { clearTimeout(timer); return res.json(); })
+    .catch(function() { clearTimeout(timer); return null; });
 }
+
+loadPresetsFromRemote().then(function(remote) {
+  if (remote) {
+    initPresets(remote);
+  } else if (window.__PRESETS__) {
+    initPresets(window.__PRESETS__);
+  } else {
+    fetch("presets.json")
+      .then(function(res) { return res.json(); })
+      .then(initPresets)
+      .catch(function(err) { console.error("Failed to load presets.json:", err); });
+  }
+});
 
 // --- Model row management ---
 function addModelRow(id, name, opts) {

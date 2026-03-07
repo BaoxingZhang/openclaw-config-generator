@@ -14,10 +14,20 @@ const CYAN = "\x1b[36m";
 const RESET = "\x1b[0m";
 
 const DEFAULT_CONFIG_PATH = join(homedir(), ".openclaw", "openclaw.json");
+const REMOTE_PRESETS_URL =
+  "https://cdn.jsdelivr.net/gh/BaoxingZhang/openclaw-config-generator@main/public/presets.json";
 
-function loadPresets() {
-  const presetsPath = join(__dirname, "public", "presets.json");
-  return JSON.parse(readFileSync(presetsPath, "utf-8"));
+async function loadPresets() {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 3000);
+    const res = await fetch(REMOTE_PRESETS_URL, { signal: ctrl.signal });
+    clearTimeout(timer);
+    return await res.json();
+  } catch {
+    const presetsPath = join(__dirname, "public", "presets.json");
+    return JSON.parse(readFileSync(presetsPath, "utf-8"));
+  }
 }
 
 function readConfig(configPath) {
@@ -125,8 +135,8 @@ ${BOLD}Examples:${RESET}
 `);
 }
 
-function cmdList() {
-  const presets = loadPresets();
+async function cmdList() {
+  const presets = await loadPresets();
   const keys = Object.keys(presets);
 
   if (keys.length === 0) {
@@ -167,7 +177,7 @@ function cmdShow(args) {
   console.log(content);
 }
 
-function cmdApply(args) {
+async function cmdApply(args) {
   const { values, positionals } = parseArgs({
     args,
     options: {
@@ -197,7 +207,7 @@ function cmdApply(args) {
     process.exit(1);
   }
 
-  const presets = loadPresets();
+  const presets = await loadPresets();
   const preset = presets[presetKey];
   if (!preset) {
     console.error(`${RED}Error: unknown preset "${presetKey}".${RESET}`);
@@ -275,28 +285,32 @@ function cmdApply(args) {
   }
 }
 
-const rawArgs = process.argv.slice(2);
-const command = rawArgs[0];
+async function main() {
+  const rawArgs = process.argv.slice(2);
+  const command = rawArgs[0];
 
-switch (command) {
-  case "list":
-    cmdList();
-    break;
-  case "show":
-    cmdShow(rawArgs.slice(1));
-    break;
-  case "apply":
-    cmdApply(rawArgs.slice(1));
-    break;
-  case "--help":
-  case "-h":
-  case "help":
-    printHelp();
-    break;
-  default:
-    if (command) {
-      console.error(`${RED}Unknown command: ${command}${RESET}\n`);
-    }
-    printHelp();
-    process.exit(command ? 1 : 0);
+  switch (command) {
+    case "list":
+      await cmdList();
+      break;
+    case "show":
+      cmdShow(rawArgs.slice(1));
+      break;
+    case "apply":
+      await cmdApply(rawArgs.slice(1));
+      break;
+    case "--help":
+    case "-h":
+    case "help":
+      printHelp();
+      break;
+    default:
+      if (command) {
+        console.error(`${RED}Unknown command: ${command}${RESET}\n`);
+      }
+      printHelp();
+      process.exit(command ? 1 : 0);
+  }
 }
+
+main();
