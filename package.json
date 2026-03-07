@@ -1,6 +1,6 @@
 {
   "name": "openclaw-config-generator",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "OpenClaw plugin — Web UI & CLI to merge third-party API provider settings into openclaw.json",
   "license": "MIT",
   "author": "BaoxingZhang",
@@ -23,7 +23,7 @@
     "config-merge"
   ],
   "bin": {
-    "openclaw-config-generator": "./cli.js"
+    "openclaw-config-generator": "cli.js"
   },
   "engines": {
     "node": ">=22"
