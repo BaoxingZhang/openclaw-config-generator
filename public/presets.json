@@ -37,9 +37,9 @@
   },
   "lioncc-gpt": {
     "name": "LionCC-g",
-    "website": "https://vibecodingapi.ai/v1",
+    "website": "https://vibecodingapi.ai",
     "apiEndpoint": "openai-completions",
-    "baseUrl": "https://vibecodingapi.ai",
+    "baseUrl": "https://vibecodingapi.ai/v1",
     "models": [
       {
         "id": "gpt-5.4",
