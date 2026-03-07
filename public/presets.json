@@ -64,6 +64,18 @@
     "baseUrl": "https://api.aihuihuayyds.com/v1",
     "models": [
       {
+        "id": "gpt-5.4",
+        "name": "gpt-5.4",
+        "input": ["text", "image"],
+        "contextWindow": 400000,
+        "maxTokens": 128000
+      },
+      {
+        "id": "gpt-5.3-codex",
+        "name": "gpt-5.3-codex",
+        "input": ["text"]
+      },
+      {
         "id": "gpt-5.2",
         "name": "gpt-5.2",
         "input": ["text", "image"]
@@ -71,11 +83,6 @@
       {
         "id": "gpt-5.2-codex",
         "name": "gpt-5.2-codex",
-        "input": ["text"]
-      },
-      {
-        "id": "gpt-5.3-codex",
-        "name": "gpt-5.3-codex",
         "input": ["text"]
       }
     ]
