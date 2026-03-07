@@ -1,6 +1,6 @@
 {
-  "lioncc": {
-    "name": "LionCC狮子",
+  "lioncc-claude": {
+    "name": "LionCC-c",
     "website": "https://vibecodingapi.ai",
     "apiEndpoint": "anthropic-messages",
     "baseUrl": "https://vibecodingapi.ai",
@@ -9,15 +9,65 @@
         "id": "claude-sonnet-4-6",
         "name": "claude-sonnet-4-6",
         "input": ["text", "image"],
-        "contextWindow": 200000,
-        "maxTokens": 16384
+        "contextWindow": 400000,
+        "maxTokens": 128000
       },
       {
         "id": "claude-opus-4-6",
         "name": "claude-opus-4-6",
         "input": ["text", "image"],
-        "contextWindow": 200000,
-        "maxTokens": 16384
+        "contextWindow": 400000,
+        "maxTokens": 128000
+      },
+      {
+        "id": "claude-opus-4-5-20251101",
+        "name": "claude-opus-4-5-20251101",
+        "input": ["text", "image"],
+        "contextWindow": 400000,
+        "maxTokens": 128000
+      },
+      {
+        "id": "claude-sonnet-4-5-20250929",
+        "name": "claude-sonnet-4-5-20250929",
+        "input": ["text", "image"],
+        "contextWindow": 400000,
+        "maxTokens": 128000
+      }
+    ]
+  },
+  "lioncc-gpt": {
+    "name": "LionCC-g",
+    "website": "https://vibecodingapi.ai/v1",
+    "apiEndpoint": "openai-completions",
+    "baseUrl": "https://vibecodingapi.ai",
+    "models": [
+      {
+        "id": "gpt-5.4",
+        "name": "gpt-5.4",
+        "input": ["text", "image"],
+        "contextWindow": 400000,
+        "maxTokens": 128000
+      },
+      {
+        "id": "gpt-5.3",
+        "name": "gpt-5.3",
+        "input": ["text", "image"],
+        "contextWindow": 400000,
+        "maxTokens": 128000
+      },
+      {
+        "id": "gpt-5.2",
+        "name": "gpt-5.2",
+        "input": ["text", "image"],
+        "contextWindow": 400000,
+        "maxTokens": 128000
+      },
+      {
+        "id": "gpt-5.1",
+        "name": "gpt-5.1",
+        "input": ["text", "image"],
+        "contextWindow": 400000,
+        "maxTokens": 128000
       }
     ]
   },
