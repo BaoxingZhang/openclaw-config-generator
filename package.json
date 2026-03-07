@@ -1,7 +1,7 @@
 {
   "name": "openclaw-config-generator",
   "version": "1.3.0",
-  "description": "OpenClaw plugin — Web UI to merge third-party API provider settings into openclaw.json",
+  "description": "OpenClaw plugin — Web UI & CLI to merge third-party API provider settings into openclaw.json",
   "license": "MIT",
   "author": "BaoxingZhang",
   "repository": {
@@ -22,6 +22,9 @@
     "web-ui",
     "config-merge"
   ],
+  "bin": {
+    "openclaw-config-generator": "./cli.js"
+  },
   "engines": {
     "node": ">=22"
   },
@@ -30,6 +33,7 @@
   },
   "files": [
     "index.ts",
+    "cli.js",
     "public",
     "openclaw.plugin.json",
     "LICENSE",

@@ -12,12 +12,13 @@
 
 OpenClaw 支持数十个模型供应商，但配置它们意味着手动编辑 `~/.openclaw/openclaw.json` — 处理嵌套 JSON、记住各种端点 URL，还要确保不破坏现有设置。
 
-**OpenClaw Config Generator** 提供可视化 Web UI，让你轻松配置第三方 API 供应商。选择预设或填写自定义信息，插件会安全地将配置合并到你的配置文件中 — 自动备份，无需手动编辑 JSON。
+**OpenClaw Config Generator** 提供可视化 Web UI 和 CLI 命令行两种方式，让你轻松配置第三方 API 供应商。选择预设或填写自定义信息，插件会安全地将配置合并到你的配置文件中 — 自动备份，无需手动编辑 JSON。
 
 - **一键预设** — 内置供应商模板，预填端点、模型和设置
 - **安全合并** — 仅更新 `models` 和 `agents` 部分，所有其他设置完整保留
 - **自动备份** — 每次写入前自动创建带时间戳的备份
 - **动态模型列表** — 每个供应商可添加多个模型，支持高级设置（推理模式、上下文窗口、Token 限制、费用等）
+- **CLI 支持** — 无桌面环境？通过命令行即可完成配置，适合云服务器
 - **零依赖** — 纯 TypeScript + 静态 HTML/CSS/JS，无需构建步骤
 
 ## 预览截图
@@ -65,6 +66,84 @@ openclaw plugins allow openclaw-config-generator
 openclaw gateway restart
 ```
 
+## CLI 命令行模式
+
+如果你在没有桌面环境的云服务器上使用 OpenClaw，无法访问 Web UI，可以直接通过命令行完成配置。
+
+无需安装，使用 `npx` 即可运行：
+
+```bash
+npx openclaw-config-generator list
+```
+
+### 命令一览
+
+#### `list` — 列出所有可用预设
+
+```bash
+npx openclaw-config-generator list
+```
+
+输出所有内置供应商预设的名称、API 端点、Base URL 和可用模型。
+
+#### `show` — 查看当前配置
+
+```bash
+npx openclaw-config-generator show
+npx openclaw-config-generator show --config /path/to/openclaw.json
+```
+
+| 参数 | 说明 |
+|------|------|
+| `--config <path>` | 指定配置文件路径（默认 `~/.openclaw/openclaw.json`） |
+
+#### `apply` — 应用预设到配置文件
+
+```bash
+npx openclaw-config-generator apply <preset> --api-key <key> [options]
+```
+
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `<preset>` | 是 | 预设 key，通过 `list` 命令查看 |
+| `--api-key <key>` | 是 | 供应商的 API 密钥 |
+| `--models <m1,m2>` | 否 | 逗号分隔的模型 ID，默认使用预设全部模型 |
+| `--base-url <url>` | 否 | 覆盖预设的 Base URL（自建代理/镜像时使用） |
+| `--api-endpoint <type>` | 否 | 覆盖 API 类型（`openai-completions` / `anthropic-messages`） |
+| `--provider-key <key>` | 否 | 自定义 provider key，替代预设默认值 |
+| `--config <path>` | 否 | 指定配置文件路径（默认 `~/.openclaw/openclaw.json`） |
+| `--no-primary` | 否 | 不更改默认主模型 |
+| `--dry-run` | 否 | 只输出合并结果，不写入文件 |
+
+### 完整示例
+
+```bash
+# 1. 查看有哪些预设可用
+npx openclaw-config-generator list
+
+# 2. 先预览合并结果（不写入）
+npx openclaw-config-generator apply custom-vibecodingapi-ai \
+  --api-key sk-your-api-key-here \
+  --dry-run
+
+# 3. 确认无误后正式应用
+npx openclaw-config-generator apply custom-vibecodingapi-ai \
+  --api-key sk-your-api-key-here
+
+# 4. 只选部分模型，并使用自定义 Base URL
+npx openclaw-config-generator apply custom-bailian-console-aliyun-com \
+  --api-key sk-your-api-key-here \
+  --models qwen3.5-plus,qwen3-coder-plus \
+  --base-url https://my-proxy.example.com/v1
+
+# 5. 添加供应商但不改变当前默认模型
+npx openclaw-config-generator apply custom-open-bigmodel-cn \
+  --api-key sk-your-api-key-here \
+  --no-primary
+```
+
+> **提示：** `apply` 命令在写入前会自动备份原配置文件（如 `openclaw.json.20260307_153000`），可随时恢复。
+
 ## 功能特性
 
 ### 供应商管理
@@ -111,9 +190,14 @@ openclaw gateway restart
 │  └────────────────────────────────┘  │
 │               │                      │
 │               ▼                      │
-│   ~/.openclaw/openclaw.json          │
+│   ~/.openclaw/openclaw.json  ◄───────┤
 │   (备份 → openclaw.json.YYYYMMDD)    │
 └──────────────────────────────────────┘
+                                  ▲
+┌─────────────────────────────────┘
+│  CLI (npx openclaw-config-generator)
+│  直接读写文件，无需 Gateway
+└──────────────────────────────────────
 ```
 
 ### 合并策略
@@ -179,7 +263,8 @@ npx serve public
 ```
 openclaw-config-generator/
 ├── index.ts                 # 插件入口 — 注册 Gateway HTTP handler，内联所有资源
-├── package.json             # npm 包配置，含 openclaw.extensions
+├── cli.js                   # CLI 入口 — 命令行配置工具（list / apply / show）
+├── package.json             # npm 包配置，含 openclaw.extensions 和 bin
 ├── openclaw.plugin.json     # 插件清单（id、configSchema、uiHints）
 ├── LICENSE                  # MIT 协议
 ├── public/                  # 静态 Web 页面
