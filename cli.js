@@ -209,7 +209,17 @@ function cmdApply(args) {
   const finalBaseUrl = values["base-url"] || preset.baseUrl;
   const finalApiEndpoint = values["api-endpoint"] || preset.apiEndpoint;
 
-  let models = preset.models.map((m) => ({ id: m.id, name: m.name || m.id, reasoning: false, input: ["text"] }));
+  let models = preset.models.map((m) => {
+    const model = {
+      id: m.id,
+      name: m.name || m.id,
+      reasoning: m.reasoning || false,
+      input: m.input || ["text"],
+    };
+    if (m.contextWindow) model.contextWindow = m.contextWindow;
+    if (m.maxTokens) model.maxTokens = m.maxTokens;
+    return model;
+  });
 
   if (values.models) {
     const selectedIds = values.models.split(",").map((s) => s.trim()).filter(Boolean);

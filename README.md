@@ -163,10 +163,13 @@ npx openclaw-config-generator apply custom-open-bigmodel-cn \
 
 | 选项 | 说明 |
 |------|------|
+| 输入类型 | 文本（text）、图片（image），可同时勾选 |
 | 推理模式 | 为支持的模型启用扩展思考 |
 | 上下文窗口 | 最大上下文大小（tokens） |
 | 最大输出 Token | 单次响应 Token 限制 |
 | 输入 / 输出价格 | 每百万 Token 费用 |
+
+> 内置预设已为每个模型预填了 `input`、`contextWindow`、`maxTokens` 等字段，选择预设后会自动填入高级选项面板。
 
 ## 工作原理
 

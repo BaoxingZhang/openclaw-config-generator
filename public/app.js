@@ -103,11 +103,19 @@ function addModelRow(id, name, opts) {
     '<button type="button" class="expand-btn" title="高级选项">&#9660;</button>' +
     '<button type="button" class="remove-btn" title="删除">&times;</button>';
 
+  var inputArr = opts.input || ["text"];
+  var hasText = inputArr.indexOf("text") !== -1;
+  var hasImage = inputArr.indexOf("image") !== -1;
+
   const advPanel = document.createElement("div");
   advPanel.className = "model-advanced";
   advPanel.innerHTML =
     '<div class="adv-row">' +
       '<label>推理模式 <input type="checkbox" class="adv-reasoning"' + (opts.reasoning ? " checked" : "") + '><span class="toggle-switch"></span></label>' +
+      '<label>文本输入 <input type="checkbox" class="adv-input-text"' + (hasText ? " checked" : "") + '><span class="toggle-switch"></span></label>' +
+      '<label>图片输入 <input type="checkbox" class="adv-input-image"' + (hasImage ? " checked" : "") + '><span class="toggle-switch"></span></label>' +
+    '</div>' +
+    '<div class="adv-row">' +
       '<label>上下文窗口 <input type="number" class="adv-context" placeholder="如 200000" value="' + (opts.contextWindow || "") + '"></label>' +
       '<label>最大输出 Tokens <input type="number" class="adv-max-tokens" placeholder="如 128000" value="' + (opts.maxTokens || "") + '"></label>' +
     '</div>' +
@@ -156,7 +164,10 @@ function getModels() {
     if (reasoning && reasoning.checked) model.reasoning = true;
     else model.reasoning = false;
 
-    model.input = ["text"];
+    var inputTypes = [];
+    if (entry.querySelector(".adv-input-text").checked) inputTypes.push("text");
+    if (entry.querySelector(".adv-input-image").checked) inputTypes.push("image");
+    model.input = inputTypes.length > 0 ? inputTypes : ["text"];
 
     const contextWindow = entry.querySelector(".adv-context").value.trim();
     if (contextWindow) model.contextWindow = Number(contextWindow);
@@ -216,7 +227,12 @@ function selectPreset(key) {
   baseurlInput.value = preset.baseUrl;
   // API Key is never preset
   clearModelRows();
-  preset.models.forEach(m => addModelRow(m.id, m.name));
+  preset.models.forEach(m => addModelRow(m.id, m.name, {
+    input: m.input,
+    reasoning: m.reasoning,
+    contextWindow: m.contextWindow,
+    maxTokens: m.maxTokens
+  }));
 }
 
 chipGroup.addEventListener("click", (e) => {
