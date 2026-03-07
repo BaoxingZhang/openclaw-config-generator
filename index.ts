@@ -3,7 +3,7 @@ const { join } = require("path");
 const { homedir } = require("os");
 
 const REMOTE_PRESETS_URL =
-  "https://cdn.jsdelivr.net/gh/BaoxingZhang/openclaw-config-generator@main/public/presets.json";
+  "https://raw.githubusercontent.com/BaoxingZhang/openclaw-config-generator/main/public/presets.json";
 
 function buildPageHtml(html, css, js, presetsJson) {
   const presetsScript = `<script>window.__PRESETS__ = ${presetsJson};</script>`;

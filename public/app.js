@@ -65,7 +65,7 @@ const configTextarea = document.getElementById("config");
 
 // Load presets: remote first, then inlined data (Gateway) or local file (dev)
 var REMOTE_PRESETS_URL =
-  "https://cdn.jsdelivr.net/gh/BaoxingZhang/openclaw-config-generator@main/public/presets.json";
+  "https://raw.githubusercontent.com/BaoxingZhang/openclaw-config-generator/main/public/presets.json";
 
 let PRESETS = {};
 

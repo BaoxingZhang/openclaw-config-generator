@@ -15,7 +15,7 @@ const RESET = "\x1b[0m";
 
 const DEFAULT_CONFIG_PATH = join(homedir(), ".openclaw", "openclaw.json");
 const REMOTE_PRESETS_URL =
-  "https://cdn.jsdelivr.net/gh/BaoxingZhang/openclaw-config-generator@main/public/presets.json";
+  "https://raw.githubusercontent.com/BaoxingZhang/openclaw-config-generator/main/public/presets.json";
 
 async function loadPresets() {
   try {
